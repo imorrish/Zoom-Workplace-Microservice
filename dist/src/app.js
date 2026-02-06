@@ -1,0 +1,36 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const helmet_1 = __importDefault(require("helmet"));
+const cors_1 = __importDefault(require("cors"));
+const cors_2 = require("./api/middleware/cors");
+const error_1 = require("./api/middleware/error");
+const requestId_1 = require("./api/middleware/requestId");
+const rateLimit_1 = require("./api/middleware/rateLimit");
+const status_routes_1 = __importDefault(require("./api/routes/status.routes"));
+const audio_routes_1 = __importDefault(require("./api/routes/audio.routes"));
+const video_routes_1 = __importDefault(require("./api/routes/video.routes"));
+const meeting_routes_1 = __importDefault(require("./api/routes/meeting.routes"));
+const auth_routes_1 = __importDefault(require("./api/routes/auth.routes"));
+const metrics_1 = require("./infra/metrics");
+const app = (0, express_1.default)();
+app.use((0, helmet_1.default)());
+app.use(express_1.default.json());
+app.use(requestId_1.requestId);
+app.use((0, cors_1.default)(cors_2.corsOptions));
+app.use(rateLimit_1.rateLimiter);
+app.use(metrics_1.metricsMiddleware);
+app.get('/healthz', (_req, res) => res.send('ok'));
+app.get('/readyz', (_req, res) => res.send('ready'));
+app.use('/metrics', metrics_1.metricsRouter);
+app.use('/api/status', status_routes_1.default);
+app.use('/api/audio', audio_routes_1.default);
+app.use('/api/video', video_routes_1.default);
+app.use('/api/meeting', meeting_routes_1.default);
+app.use('/auth', auth_routes_1.default);
+app.use(error_1.errorHandler);
+exports.default = app;
+//# sourceMappingURL=app.js.map
